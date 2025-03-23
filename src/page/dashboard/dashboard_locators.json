@@ -1,0 +1,6 @@
+{
+  "list_products": "div.container .card",
+  "product_name": "h5 b" ,
+  "button_add_to_cart": "button:has-text('Add To Cart')",
+  "cart_quantity_products": "button label"
+}
