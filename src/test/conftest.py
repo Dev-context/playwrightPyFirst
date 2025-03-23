@@ -1,13 +1,25 @@
 import pytest
-from playwright.sync_api import sync_playwright, Page, Playwright, expect
-from page.login.login_page import LoginPage
-from utils.helpers import json_reader
+from playwright.sync_api import sync_playwright, Page, expect
+from src.page.login.login_page import LoginPage
+from src.utils.helpers import json_reader
+
+
+import sys
+import os
+
+# Add the src directory to the system path so that it can be found
+absolute_path=sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), '..', 'src')))
+
 
 @pytest.fixture(scope="session")
 def browser_instance(request):
     with sync_playwright() as playwright:
         browser_name = request.config.getoption("--browser_name")
-        is_headed = request.config.getoption("--headed").lower() == "true"  # Convert to boolean
+        is_headed = request.config.getoption("--headed-mode")
+
+        # Ensure 'is_headed' is a boolean (True or False)
+        if isinstance(is_headed, str):
+            is_headed = is_headed.lower() == 'true'
 
         if browser_name == "chrome":
             browser = playwright.chromium.launch(headless=not is_headed)
@@ -38,12 +50,15 @@ def json_data():
 @pytest.fixture()
 def login(set_up: Page, json_data):
     page = set_up
-    login_page = LoginPage(page, json_data("src/page/login/login_locators.json"))
-    user_data = json_data("src/date/user.json")
+    login_page = LoginPage(page, json_data("page/login/login_locators.json"))
+    user_data = json_data("date/user.json")
     login_page.login(user_data["user"], user_data["password"])
     expect(page.get_by_role("button", name="Sign Out")).to_be_visible()
+    with page.expect_response("https://rahulshettyacademy.com/api/ecom/product/get-all-products") as res:
+         assert res.value.status == 200
     yield page  # Yield logged-in page for further tests
 
 def pytest_addoption(parser):
     parser.addoption("--browser_name", action="store", default="chrome")
-    parser.addoption("--headed", action="store", default="True")
+    parser.addoption("--headed-mode", action="store", default="True", help="Run browser in headed mode (True or False)")
+

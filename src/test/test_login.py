@@ -1,8 +1,7 @@
-import pytest
-from playwright.sync_api import Page, expect, sync_playwright, Response
+from playwright.sync_api import Page, expect
 from ..utils.helpers import json_reader
 from ..page.login.login_page import LoginPage
-from conftest import  set_up,json_data
+from test.conftest import  set_up,json_data
 
 
 
